@@ -1,8 +1,15 @@
+#define _POSIX_C_SOURCE 200809L
+#define _XOPEN_SOURCE
+#include <time.h>
+#include <string.h>
 #include <VTL/user/history/VTL_user_history_data.h>
 
-static VTL_Time VTL_user_history_GetCurrentTime(void)
+time_t time(time_t *t);
+
+time_t VTL_user_history_GetCurrentTime(void)
 {
-    return time(NULL);
+    time_t current_time;
+    return time(&current_time);
 }
 
 void VTL_user_history_text_pubication_Init(VTL_UserHistory* p_user_history, const VTL_User* p_user, 

@@ -1,12 +1,15 @@
 #ifndef _VTL_USER_HISTORY_DATA_H
 #define _VTL_USER_HISTORY_DATA_H
 
+#define _POSIX_C_SOURCE 200809L
+#define _XOPEN_SOURCE
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-
+#include <time.h>
 #include <VTL/user/VTL_user_data.h>
 #include <VTL/VTL_content_platform_flags.h>
 #include <VTL/utils/VTL_time.h>
