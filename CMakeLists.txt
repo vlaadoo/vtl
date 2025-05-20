@@ -154,4 +154,4 @@ target_include_directories(${AppName}
 
 enable_testing()
 
-add_subdirectory(VTL/test)
+add_subdirectory(vtl_tests)
