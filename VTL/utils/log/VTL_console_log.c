@@ -1,6 +1,6 @@
 #include <VTL/utils/log/VTL_console_log.h>
 
-#define VTL_console_output(x) printf("%s", x) 
+#define VTL_console_output(x) printf_s("%s", x) 
 
 #define VTL_CONSOLE_OUT_INPUT_FILE_IS_MISSING_ERR_TEXT "Input file is missing."
 #define VTL_CONSOLE_OUT_INPUT_FILE_IS_BUSY_ERR_TEXT "Input file is busy."

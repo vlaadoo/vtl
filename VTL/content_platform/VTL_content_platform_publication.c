@@ -1,7 +1,6 @@
 #include <VTL/content_platform/VTL_content_platform_publication.h>
 
 
-
 VTL_AppResult VTL_content_platform_PublicateMarkedTexts(const VTL_publication_marked_text_Configs* p_configs,
     const VTL_content_platform_flags flags)
 {    
