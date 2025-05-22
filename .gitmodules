@@ -1,3 +1,11 @@
 [submodule "external/ffmpeg"]
 	path = external/ffmpeg
 	url = https://github.com/FFmpeg/FFmpeg.git
+
+[submodule "external/openssl"]
+	path = external/openssl
+	url = https://github.com/janbar/openssl-cmake/tree/master
+
+[submodule "external/postgres"]
+	path = external/postgres
+	url =https://github.com/stalkerg/postgres_cmake/tree/cmake

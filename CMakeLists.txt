@@ -29,6 +29,16 @@ set(VTL_CMAKE_UTILS_SRC_FILES
 
     VTL/utils/db/VTL_db_credentals.c
 
+    VTL/utils/db/VTL_db_connection.c
+    VTL/utils/db/VTL_db_executor.c
+
+    )
+
+    set (VTL_CMAKE_HISTORY_ADMINISTRATION_SRC_FILES
+
+        VTL/history_administration/VTL_history_administration.c
+        VTL/history_administration/user_administration/db/VTL_administrate_user.c
+
     )
 
 set(VTL_CMAKE_USER_SRC_FILES
@@ -109,6 +119,7 @@ add_subdirectory(VTL/media_container/img)
 
 add_executable(${AppName}
     ${VTL_CMAKE_UTILS_SRC_FILES}
+    ${VTL_CMAKE_HISTORY_ADMINISTRATION_SRC_FILES}
     ${VTL_CMAKE_USER_SRC_FILES}
     ${VTL_CMAKE_PUBLICATION_SRC_FILES}
     ${VTL_CMAKE_MEDIA_CONTAINER_SRC_FILES}

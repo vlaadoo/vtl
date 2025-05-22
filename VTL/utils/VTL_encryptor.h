@@ -21,6 +21,8 @@ typedef VTL_StandartString VTL_EncryptedString;
 
 void VTL_Encrypt(const VTL_StandartString src_string, VTL_EncryptedString encrypted_string);
 
+void VTL_Decrypt(const VTL_EncryptedString encrypted_string, VTL_StandartString decrypted_string);
+
 
 
 #ifdef __cplusplus
