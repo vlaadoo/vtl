@@ -193,3 +193,10 @@ if(APPLE)
         iconv                             # Для поддержки iconv (конвертация кодировок)
     )
 endif()
+
+# Добавляем поддержку OpenCL
+find_package(OpenCL REQUIRED)
+
+# Добавляем OpenCL к основной библиотеке/приложению
+# (пример для библиотеки VTL, скорректируйте под вашу структуру)
+target_link_libraries(VTL PRIVATE OpenCL::OpenCL)

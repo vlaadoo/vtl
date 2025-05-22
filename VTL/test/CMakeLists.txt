@@ -18,6 +18,7 @@ add_executable(VTL_sub_style_demo
     ../media_container/sub/VTL_sub_read.c
     ../media_container/sub/VTL_sub_write.c
     ../media_container/sub/VTL_sub_data.c
+    ../media_container/sub/VTL_sub_opencl.c
     ../../external/parson/parson.c
 )
 target_include_directories(VTL_sub_style_demo PRIVATE
@@ -25,6 +26,19 @@ target_include_directories(VTL_sub_style_demo PRIVATE
     ${CMAKE_SOURCE_DIR}/VTL
     ${CMAKE_SOURCE_DIR}/VTL/media_container/sub
     ${CMAKE_SOURCE_DIR}/external/parson
+    ${CMAKE_SOURCE_DIR}/external/ffmpeg
 )
-target_link_libraries(VTL_sub_style_demo PRIVATE m z bz2 lzma ffmpeg)
+if(APPLE)
+    target_link_libraries(VTL_sub_style_demo PRIVATE
+        "-framework OpenCL"
+        ${CMAKE_SOURCE_DIR}/external/ffmpeg/libavformat/libavformat.dylib
+        ${CMAKE_SOURCE_DIR}/external/ffmpeg/libavcodec/libavcodec.dylib
+        ${CMAKE_SOURCE_DIR}/external/ffmpeg/libavfilter/libavfilter.dylib
+        ${CMAKE_SOURCE_DIR}/external/ffmpeg/libavutil/libavutil.dylib
+        ${CMAKE_SOURCE_DIR}/external/ffmpeg/libswscale/libswscale.dylib
+        ${CMAKE_SOURCE_DIR}/external/ffmpeg/libswresample/libswresample.dylib
+    )
+else()
+    target_link_libraries(VTL_sub_style_demo PRIVATE OpenCL)
+endif()
 add_dependencies(VTL_sub_style_demo ffmpeg_ext)

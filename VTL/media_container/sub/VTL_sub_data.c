@@ -3,6 +3,7 @@
 #include <string.h> // Для memcpy, memset, strncpy, strdup, strtok_r, strstr, strchr
 #include <stdio.h>  // Для sscanf, snprintf
 #include <ctype.h>  // Для isspace
+#include "VTL_sub_opencl.h"
 
 // Прототипы вспомогательных функций времени
 static double VTL_sub_ParseSrtVttTime(const char* time_str);
@@ -658,6 +659,24 @@ VTL_AppResult VTL_sub_formatToString(const VTL_SubList* p_sub_list, VTL_sub_Form
 
 
     if (format == VTL_sub_format_kSRT || format == VTL_sub_format_kVTT || format == VTL_sub_format_kASS) {
+        // Если формат ASS — массово удаляем теги из текста через OpenCL (или CPU fallback)
+        if (format == VTL_sub_format_kASS && p_sub_list->count > 0) {
+            const char** in_texts = (const char**)malloc(sizeof(char*) * p_sub_list->count);
+            char** out_texts = (char**)malloc(sizeof(char*) * p_sub_list->count);
+            if (in_texts && out_texts) {
+                for (size_t i = 0; i < p_sub_list->count; ++i) in_texts[i] = p_sub_list->entries[i].text;
+                VTL_sub_opencl_strip_tags(in_texts, out_texts, p_sub_list->count);
+                for (size_t i = 0; i < p_sub_list->count; ++i) {
+                    if (out_texts[i]) {
+                        free((void*)p_sub_list->entries[i].text);
+                        p_sub_list->entries[i].text = out_texts[i];
+                    }
+                }
+            }
+            free(in_texts);
+            free(out_texts);
+        }
+
         for (size_t i = 0; i < p_sub_list->count; ++i) {
             VTL_SubEntry* entry = &p_sub_list->entries[i];
             char entry_render_buffer[2048]; // Увеличенный буфер для рендеринга одной строки субтитра
