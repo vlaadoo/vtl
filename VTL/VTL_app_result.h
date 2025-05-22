@@ -18,8 +18,19 @@ typedef enum _VTL_AppResult
 
     VTL_res_video_fs_w_kFileIsBusyErr = 10,
 
+    // Общие ошибки
+    VTL_res_kUnsupportedFormat = 20,
+    VTL_res_kParseError = 21,
+    VTL_res_kMemoryError = 22,
+    VTL_res_kArgumentError = 23,
+    VTL_res_kIOError = 24,
+    VTL_res_kUnknownError = 25,
 
-    
+    // Новые коды для субтитров и универсального API
+    VTL_res_kNullArgument = 100,
+    VTL_res_kAllocError = 101,
+    VTL_res_kEndOfFile = 102,
+    VTL_res_kInvalidIndex = 103
 } VTL_AppResult;
 
 

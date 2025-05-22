@@ -181,7 +181,7 @@ int VTL_img_SaveImage(const char* output_path, VTL_ImageContext* ctx)
     }
 
     // Создаем контекст для конвертации
-    SwsContext *sws_ctx = sws_getContext(
+    struct SwsContext *sws_ctx = sws_getContext( // Исправлено: требуется struct SwsContext* для shared ffmpeg
         ctx->current_frame->width, ctx->current_frame->height, ctx->current_frame->format,
         rgb_frame->width, rgb_frame->height, rgb_frame->format,
         SWS_BILINEAR, NULL, NULL, NULL

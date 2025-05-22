@@ -50,7 +50,7 @@ typedef struct _VTL_publication_marked_text_Block
 typedef VTL_publication_marked_text_Block VTL_publication_MarkedText;
 
 #define VTL_PUBLICATION_TEXT_DEFAULT_LENGTH 100000
-#define VTL_PUBLICATION_TEXT_DEFAULT_SIZE (VTL_PUBLICATION_TEXT_DEFAULT_LENGTH*sizeof(VTL_text_Symbol)+sizeof(size_t))
+#define VTL_PUBLICATION_TEXT_DEFAULT_SIZE (VTL_PUBLICATION_TEXT_DEFAULT_LENGTH*sizeof(VTL_publication_text_Symbol)+sizeof(size_t)) // заменил потому что VTL_text_Symbol не был определён
 
 
 void VTL_publication_marked_text_modification_SetBold(VTL_publication_text_modification_Flags* p_flags);

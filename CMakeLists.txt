@@ -2,6 +2,17 @@ cmake_minimum_required(VERSION 3.25.0)
 
 project(VTL C)
 
+# include(ExternalProject)
+# 
+# ExternalProject_Add(
+#     ffmpeg_ext
+#     SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/ffmpeg
+#     CONFIGURE_COMMAND ./configure --disable-doc --disable-programs --enable-ffmpeg --disable-ffplay --disable-ffprobe --disable-static --enable-shared --prefix=${CMAKE_SOURCE_DIR}/external/ffmpeg_build
+#     BUILD_COMMAND make -j$(nproc)
+#     INSTALL_COMMAND make install
+#     BUILD_IN_SOURCE 1
+# )
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
@@ -115,31 +126,38 @@ add_executable(${AppName}
     ${VTL_CMAKE_CONTENT_PLATFORM_SRC_FILES}
     main.c)
 
+# Добавлено для поддержки libass через pkg-config (ASS/SSA субтитры)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBASS REQUIRED libass)
+
 # Link FFmpeg
 target_link_libraries(${AppName} PRIVATE 
     ffmpeg 
     VTL_img 
     m           # математическая библиотека
-    va          # VAAPI
-    va-drm      # VAAPI DRM
-    va-x11      # VAAPI X11
-    drm         # Direct Rendering Manager
-    X11         # X11
-    vdpau       # VDPAU
+    ${LIBASS_LIBRARIES} ${LIBASS_LDFLAGS} # корректная линковка libass через pkg-config
+#    va          # VAAPI (только для Linux, на macOS не поддерживается)
+#    va-drm      # VAAPI DRM (только для Linux, на macOS не поддерживается)
+#    va-x11      # VAAPI X11 (только для Linux, на macOS не поддерживается)
+#    drm         # Direct Rendering Manager (только для Linux, на macOS не поддерживается)
+#    X11         # X11 (только для Linux/Unix, на macOS не поддерживается)
+#    vdpau       # VDPAU (только для Linux, на macOS не поддерживается)
     z           # zlib
     bz2         # bzip2
     lzma        # xz/lzma
-    lz4         # lz4
-    zstd        # zstd
-    x264        # H.264
-    x265        # H.265
-    vpx         # VP8/VP9
-    aom         # AV1
-    opus        # Opus audio
-    vorbis      # Vorbis audio
-    ogg         # Ogg container
-    swresample  # FFmpeg resampling
-    swscale     # FFmpeg scaling
+#    lz4         # lz4 (только для Linux, на macOS не поддерживается)
+#    zstd        # zstd (только для Linux, на macOS не поддерживается)
+#    x264        # H.264 (только для Linux, на macOS не поддерживается)
+#    x265        # H.265 (только для Linux, на macOS не поддерживается)
+#    vpx         # VP8/VP9 (только для Linux, на macOS не поддерживается)
+#    aom         # AV1 (только для Linux, на macOS не поддерживается)
+#    opus        # Opus audio (только для Linux, на macOS не поддерживается)
+#    vorbis      # Vorbis audio (только для Linux, на macOS не поддерживается)
+#    ogg         # Ogg container (только для Linux, на macOS не поддерживается)
+#    swresample  # FFmpeg resampling (линковка не требуется на macOS, всё тянет ffmpeg)
+#    swscale     # FFmpeg scaling (линковка не требуется на macOS, всё тянет ffmpeg)
+    "-framework OpenGL"               # Для CGLGetCurrentContext (OpenGL контекст, используется CoreImage)
+    "-framework Metal"                # Для MTLCreateSystemDefaultDevice (Metal API, используется FFmpeg фильтрами)
 )
 
 target_include_directories(${AppName} 
@@ -148,10 +166,30 @@ target_include_directories(${AppName}
     ${CMAKE_SOURCE_DIR}/VTL
     ${CMAKE_SOURCE_DIR}/VTL/user
     ${CMAKE_SOURCE_DIR}/VTL/user/history
+    ${FFMPEG_INCLUDE_DIRS}
     SYSTEM
     /usr/include
+    ${LIBASS_INCLUDE_DIRS}
 )
 
 enable_testing()
 
 add_subdirectory(VTL/test)
+
+# Следующие фреймворки нужны для поддержки мультимедиа и CoreFoundation на macOS
+if(APPLE)
+    target_link_libraries(${AppName} PRIVATE
+        "-framework CoreFoundation"      # Для работы с CoreFoundation (CFArray, CFData и др.)
+        "-framework CoreMedia"           # Для работы с CoreMedia (CMSampleBuffer и др.)
+        "-framework VideoToolbox"        # Для аппаратного видеокодирования/декодирования
+        "-framework AVFoundation"        # Для мультимедиа (AVAsset, AVPlayer и др.)
+        "-framework CoreGraphics"        # Для работы с изображениями (CGImage, CGContext и др.)
+        "-framework CoreVideo"           # Для работы с видеобуферами (CVPixelBuffer и др.)
+        "-framework AudioToolbox"        # Для работы с аудио (AudioConverter и др.)
+        "-framework Foundation"          # Для Objective-C классов (NSString, NSArray и др.)
+        "-framework AppKit"              # Для CoreImage фильтров (NSOpenGLPixelFormat и др.)
+        "-framework CoreImage"           # Для фильтров и работы с изображениями (CIImage, CIFilter и др.)
+        "-framework Security"            # Для SSL/TLS (SSLClose, SSLCreateContext и др.)
+        iconv                             # Для поддержки iconv (конвертация кодировок)
+    )
+endif()

@@ -1,7 +1,7 @@
 include(FetchContent)
 include(ExternalProject)
 
-set(FFMPEG_BUILD_SHARED_LIBS OFF CACHE BOOL "Build FFmpeg as shared libraries")
+set(FFMPEG_BUILD_SHARED_LIBS ON CACHE BOOL "Build FFmpeg as shared libraries")
 set(FFMPEG_ENABLE_GPL ON CACHE BOOL "Enable GPL code")
 set(FFMPEG_ENABLE_NONFREE ON CACHE BOOL "Enable nonfree code")
 
@@ -10,11 +10,10 @@ set(FFMPEG_INSTALL_DIR ${CMAKE_BINARY_DIR}/ffmpeg_install)
 # Создаем файл с хешем конфигурации
 set(FFMPEG_CONFIG_HASH_FILE ${CMAKE_BINARY_DIR}/ffmpeg_config_hash.txt)
 set(FFMPEG_CONFIGURE_OPTIONS
-    --enable-static
-    --disable-shared
+    --enable-shared
+    --disable-static
     --enable-pic
     --disable-doc
-    --disable-programs
     --enable-avdevice
     --enable-swscale
     --enable-avfilter
@@ -45,6 +44,9 @@ set(FFMPEG_CONFIGURE_OPTIONS
     --enable-filter=transpose
     --enable-swscale
     --enable-swscale-alpha
+    --enable-libass # Включить поддержку libass (ASS/SSA субтитры)
+    --extra-cflags="-I${CMAKE_CURRENT_SOURCE_DIR}/external/zlib -I${CMAKE_CURRENT_SOURCE_DIR}/external/zlib/build -I${CMAKE_CURRENT_SOURCE_DIR}/external/libass/build/include" # Пути к include-файлам локальных zlib и libass
+    --extra-ldflags="-L${CMAKE_CURRENT_SOURCE_DIR}/external/zlib/build -L${CMAKE_CURRENT_SOURCE_DIR}/external/libass/build/lib" # Пути к собранным библиотекам zlib и libass
     --prefix=${FFMPEG_INSTALL_DIR}
 )
 
@@ -81,7 +83,7 @@ if(FFMPEG_NEEDS_REBUILD)
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/ffmpeg
         CONFIGURE_COMMAND ${FFMPEG_CONFIG_HASH_CMD}
             COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/external/ffmpeg/configure ${FFMPEG_CONFIGURE_OPTIONS}
-        BUILD_COMMAND make -j${CMAKE_BUILD_PARALLEL_LEVEL}
+        BUILD_COMMAND make -j2
         INSTALL_COMMAND make install
         BUILD_IN_SOURCE 1
     )
@@ -105,13 +107,13 @@ set(FFMPEG_INCLUDE_DIRS
 
 # Set FFmpeg libraries
 set(FFMPEG_LIBRARIES
-    ${FFMPEG_INSTALL_DIR}/lib/libavdevice.a
-    ${FFMPEG_INSTALL_DIR}/lib/libavfilter.a
-    ${FFMPEG_INSTALL_DIR}/lib/libavformat.a
-    ${FFMPEG_INSTALL_DIR}/lib/libavcodec.a
-    ${FFMPEG_INSTALL_DIR}/lib/libswscale.a
-    ${FFMPEG_INSTALL_DIR}/lib/libswresample.a
-    ${FFMPEG_INSTALL_DIR}/lib/libavutil.a
+    ${FFMPEG_INSTALL_DIR}/lib/libavdevice.dylib
+    ${FFMPEG_INSTALL_DIR}/lib/libavfilter.dylib
+    ${FFMPEG_INSTALL_DIR}/lib/libavformat.dylib
+    ${FFMPEG_INSTALL_DIR}/lib/libavcodec.dylib
+    ${FFMPEG_INSTALL_DIR}/lib/libswscale.dylib
+    ${FFMPEG_INSTALL_DIR}/lib/libswresample.dylib
+    ${FFMPEG_INSTALL_DIR}/lib/libavutil.dylib
 )
 
 add_library(ffmpeg INTERFACE)

@@ -32,12 +32,6 @@ typedef int VTL_publication_marked_text_type_Flags;
 #define VTL_PUBLICATION_TEXT_TYPE_BB (1 << VTL_markup_type_kBB)
 #define VTL_PUBLICATION_TEXT_TYPE_REGULAR (1 << VTL_PUBLICATION_TEXT_TYPE_REGULAR_SHIFT)
 
-bool VTL_publication_marked_text_type_flag_CheckStandartMD(const VTL_publication_marked_text_type_Flags flags);
-bool VTL_publication_marked_text_type_flag_CheckTelegramMD(const VTL_publication_marked_text_type_Flags flags);
-bool VTL_publication_marked_text_type_flag_CheckHTML(const VTL_publication_marked_text_type_Flags flags);
-bool VTL_publication_marked_text_type_flag_CheckBB(const VTL_publication_marked_text_type_Flags flags);
-bool VTL_publication_marked_text_type_flag_CheckRegularText(const VTL_publication_marked_text_type_Flags flags);
-
 
 
 #ifdef __cplusplus

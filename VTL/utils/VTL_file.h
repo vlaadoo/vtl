@@ -10,10 +10,9 @@ extern "C"
 #include <VTL/utils/VTL_string.h>
 #include <VTL/VTL_app_result.h>
 #include <VTL/utils/VTL_buffer_data.h>
+#define __STDC_WANT_LIB_EXT1__ 1 // некоторые компиляторы требуют именно такое определение
 #include <stddef.h>
 #include <stdbool.h>
-
-#define __STDC_WANT_LIB_EXT1__
 #include <stdio.h>
 
 typedef VTL_StandartString VTL_Filename;

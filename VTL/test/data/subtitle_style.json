@@ -1,0 +1,17 @@
+{
+   "fontname": "Arial",
+   "fontsize": 14,
+   "primary_color": "0xFF0000FF",
+   "back_color": "0x80000000",
+   "outline_color": "0xFF000000",
+   "outline": 2,
+   "border_style": 1,
+   "bold": 1,
+   "italic": 0,
+   "underline": 0,
+   "alignment": 2,
+   "margin_l": 10,
+   "margin_r": 10,
+   "margin_v": 50,
+   "_comment": "0x00FF0000, 0xFFFF0000, 0xFF0000FF — пример другого цвета"
+}
