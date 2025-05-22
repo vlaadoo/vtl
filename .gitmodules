@@ -4,8 +4,8 @@
 
 [submodule "external/openssl"]
 	path = external/openssl
-	url = https://github.com/janbar/openssl-cmake/tree/master
+	url = https://github.com/openssl/openssl.git
 
 [submodule "external/postgres"]
 	path = external/postgres
-	url =https://github.com/stalkerg/postgres_cmake/tree/cmake
+	url = https://github.com/postgres/postgres.git
