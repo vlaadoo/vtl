@@ -126,6 +126,10 @@ add_executable(${AppName}
     ${VTL_CMAKE_CONTENT_PLATFORM_SRC_FILES}
     main.c)
 
+    # Пути к внешним библиотекам
+set(OPENSSL_ROOT "${CMAKE_SOURCE_DIR}/external/openssl")
+set(POSTGRES_ROOT "${CMAKE_SOURCE_DIR}/external/postgres")
+
 # Link FFmpeg
 target_link_libraries(${AppName} PRIVATE 
     ffmpeg 
@@ -153,12 +157,16 @@ target_link_libraries(${AppName} PRIVATE
     swscale     # FFmpeg scaling
 )
 
+
+
 target_include_directories(${AppName} 
     PRIVATE 
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/VTL
     ${CMAKE_SOURCE_DIR}/VTL/user
     ${CMAKE_SOURCE_DIR}/VTL/user/history
+    ${OPENSSL_ROOT}/include
+    ${POSTGRES_ROOT}/include
     SYSTEM
     /usr/include
 )
