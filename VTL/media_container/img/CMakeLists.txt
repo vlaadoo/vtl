@@ -1,12 +1,12 @@
 # Находим необходимые пакеты
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET
-    libavcodec
-    libavformat
-    libavfilter
-    libavutil
-    libswscale
-)
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET
+#     libavcodec
+#     libavformat
+#     libavfilter
+#     libavutil
+#     libswscale
+# )
 
 # Создаем библиотеку для обработки изображений
 add_library(VTL_img STATIC
@@ -26,15 +26,15 @@ set_target_properties(VTL_img PROPERTIES
 target_include_directories(VTL_img
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
-    PRIVATE
-        ${FFMPEG_INCLUDE_DIRS}
+    # PRIVATE
+    #     ${FFMPEG_INCLUDE_DIRS}
 )
 
 # Линкуем с FFmpeg
-target_link_libraries(VTL_img
-    PRIVATE
-        PkgConfig::FFMPEG
-)
+# target_link_libraries(VTL_img
+#     PRIVATE
+#         PkgConfig::FFMPEG
+# )
 
 # Устанавливаем флаги компиляции
 target_compile_options(VTL_img PRIVATE
@@ -77,4 +77,4 @@ install(FILES
     VTL_img_utils.h
     VTL_img_data.h
     DESTINATION include/VTL/img
-) 
+)

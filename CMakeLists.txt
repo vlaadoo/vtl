@@ -12,7 +12,7 @@ add_compile_options(-Wno-implicit-function-declaration)
 # Add system include paths
 include_directories(SYSTEM /usr/include)
 
-include(cmake/FFmpeg.cmake)
+# include(cmake/FFmpeg.cmake)
 
 set(AppName ${CMAKE_PROJECT_NAME})
 
@@ -116,31 +116,33 @@ add_executable(${AppName}
     main.c)
 
 # Link FFmpeg
-target_link_libraries(${AppName} PRIVATE 
-    ffmpeg 
-    VTL_img 
-    m           # математическая библиотека
-    va          # VAAPI
-    va-drm      # VAAPI DRM
-    va-x11      # VAAPI X11
-    drm         # Direct Rendering Manager
-    X11         # X11
-    vdpau       # VDPAU
-    z           # zlib
-    bz2         # bzip2
-    lzma        # xz/lzma
-    lz4         # lz4
-    zstd        # zstd
-    x264        # H.264
-    x265        # H.265
-    vpx         # VP8/VP9
-    aom         # AV1
-    opus        # Opus audio
-    vorbis      # Vorbis audio
-    ogg         # Ogg container
-    swresample  # FFmpeg resampling
-    swscale     # FFmpeg scaling
-)
+# target_link_libraries(${AppName} PRIVATE 
+#     ffmpeg 
+#     VTL_img 
+#     m           # математическая библиотека
+#     va          # VAAPI
+#     va-drm      # VAAPI DRM
+#     va-x11      # VAAPI X11
+#     drm         # Direct Rendering Manager
+#     X11         # X11
+#     vdpau       # VDPAU
+#     z           # zlib
+#     bz2         # bzip2
+#     lzma        # xz/lzma
+#     lz4         # lz4
+#     zstd        # zstd
+#     x264        # H.264
+#     x265        # H.265
+#     vpx         # VP8/VP9
+#     aom         # AV1
+#     opus        # Opus audio
+#     vorbis      # Vorbis audio
+#     ogg         # Ogg container
+#     swresample  # FFmpeg resampling
+#     swscale     # FFmpeg scaling
+# )
+
+target_link_libraries(${AppName} PRIVATE VTL_img m)
 
 target_include_directories(${AppName} 
     PRIVATE 

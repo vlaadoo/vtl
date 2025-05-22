@@ -15,22 +15,24 @@ extern "C"
 #include <libswscale/swscale.h>
 #include <libavutil/imgutils.h>
 
-typedef struct _VTL_ImageFilter {
-    const char* name;
-    const char* description;
-    const char* filter_desc;  // FFmpeg filter description string
-    int (*apply)(AVFrame* frame);
-} VTL_ImageFilter;
+  typedef struct _VTL_ImageFilter
+  {
+    const char *name;
+    const char *description;
+    const char *filter_desc; // FFmpeg filter description string
+    int (*apply)(AVFrame *frame);
+  } VTL_ImageFilter;
 
-typedef struct _VTL_ImageContext {
-    AVFormatContext* format_ctx;
-    AVCodecContext* codec_ctx;
-    AVFilterContext* buffersrc_ctx;
-    AVFilterContext* buffersink_ctx;
-    AVFilterGraph* filter_graph;
-    SwsContext* sws_ctx;
-    AVFrame* current_frame;  // Текущий кадр изображения
-} VTL_ImageContext;
+  typedef struct _VTL_ImageContext
+  {
+    AVFormatContext *format_ctx;
+    AVCodecContext *codec_ctx;
+    AVFilterContext *buffersrc_ctx;
+    AVFilterContext *buffersink_ctx;
+    AVFilterGraph *filter_graph;
+    SwsContext *sws_ctx;
+    AVFrame *current_frame; // Текущий кадр изображения
+  } VTL_ImageContext;
 
 #ifdef __cplusplus
 }
