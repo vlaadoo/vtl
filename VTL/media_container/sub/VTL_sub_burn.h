@@ -1,8 +1,8 @@
 #ifndef VTL_SUB_BURN_H
 #define VTL_SUB_BURN_H
 
-#include "VTL_sub_data.h" // Для VTL_sub_Format
-#include "VTL_sub_style.h"
+#include <VTL/media_container/sub/VTL_sub_data.h> // Для VTL_sub_Format
+#include <VTL/media_container/sub/VTL_sub_style.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,7 +18,7 @@ extern "C" {
  * @param style_params Параметры стиля субтитров.
  * @return 0 в случае успеха, -1 или другой код ошибки FFmpeg в случае неудачи.
  */
-int VTL_sub_burn_to_video(const char* input_video, const char* input_subs, VTL_sub_Format subs_format, const char* output_video, const VTL_SubStyleParams* style_params);
+int VTL_sub_BurnToVideo(const char* input_video, const char* input_subs, VTL_sub_Format subs_format, const char* output_video, const VTL_sub_StyleParams* style_params);
 
 #ifdef __cplusplus
 }

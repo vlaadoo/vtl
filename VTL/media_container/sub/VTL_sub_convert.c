@@ -1,14 +1,14 @@
-#include "VTL_sub_convert.h"
-#include "VTL_sub_style.h"
-#include "VTL_sub_parse.h"
-#include "VTL_sub_read.h"
-#include "VTL_sub_write.h"
+#include <VTL/media_container/sub/VTL_sub_convert.h>
+#include <VTL/media_container/sub/VTL_sub_style.h>
+#include <VTL/media_container/sub/VTL_sub_parse.h>
+#include <VTL/media_container/sub/VTL_sub_read.h>
+#include <VTL/media_container/sub/VTL_sub_write.h>
 #include <stdio.h>
 #undef strdup
-#include "VTL_sub_data.h"
+#include <VTL/media_container/sub/VTL_sub_data.h>
 
 // Форматтер времени
-static void format_time(char* buf, size_t bufsz, double t, VTL_sub_Format format) {
+static void VTL_sub_ConvertFormatTime(char* buf, size_t bufsz, double t, VTL_sub_Format format) {
     int h = (int)(t / 3600);
     int m = (int)(t / 60) % 60;
     int s = (int)t % 60;
@@ -29,7 +29,7 @@ static void format_time(char* buf, size_t bufsz, double t, VTL_sub_Format format
 // Для данной libass: Alpha в ASS инвертирована по сравнению с ARGB.
 // ASS Alpha 0x00 = непрозрачный (соответствует ARGB Alpha 0xFF)
 // ASS Alpha 0xFF = прозрачный   (соответствует ARGB Alpha 0x00)
-static void color_to_str(uint32_t argb, char* buf, size_t bufsz, VTL_sub_Format format) {
+static void VTL_sub_ConvertColorToStr(uint32_t argb, char* buf, size_t bufsz, VTL_sub_Format format) {
     if (format == VTL_sub_format_kASS) {
         uint8_t r_argb = (argb >> 16) & 0xFF;
         uint8_t g_argb = (argb >> 8) & 0xFF;
@@ -53,28 +53,28 @@ static void color_to_str(uint32_t argb, char* buf, size_t bufsz, VTL_sub_Format 
 
 // Конвертирует файл субтитров из входного файла в выходной, применяя параметры оформления.
 // Если style_params равен NULL, используются стили по умолчанию.
-VTL_AppResult VTL_sub_convert_with_style(const char* input_file, VTL_sub_Format input_format, 
-                                         const char* output_file, VTL_sub_Format output_format, 
-                                         const VTL_SubStyleParams* style_params) {
-    VTL_SubReadSource* src = NULL;
-    VTL_AppResult res = VTL_sub_read_OpenSource(input_file, &src);
+VTL_AppResult VTL_sub_ConvertWithStyle(const char* input_file, VTL_sub_Format input_format, 
+                                       const char* output_file, VTL_sub_Format output_format, 
+                                       const VTL_sub_StyleParams* style_params) {
+    VTL_sub_ReadSource* src = NULL;
+    VTL_AppResult res = VTL_sub_ReadOpenSource(input_file, &src);
     if (res != VTL_res_kOk) return res;
-    VTL_SubReadMeta meta;
-    VTL_sub_read_ReadMetaData(src, &meta);
+    VTL_sub_ReadMeta meta;
+    VTL_sub_ReadMetaData(src, &meta);
 
-    VTL_SubWriteMeta wmeta = { .format = output_format };
-    VTL_SubWriteSink* sink = NULL;
-    res = VTL_sub_write_OpenOutput(output_file, &wmeta, &sink);
+    VTL_sub_WriteMeta wmeta = { .format = output_format };
+    VTL_sub_WriteSink* sink = NULL;
+    res = VTL_sub_WriteOpenSink(output_file, output_format, &sink);
     if (res != VTL_res_kOk) {
-        VTL_sub_read_CloseSource(&src);
+        VTL_sub_ReadCloseSource(&src);
         return res;
     }
 
-    VTL_SubEntry entry;
-    while (VTL_sub_read_ReadPart(src, &entry) == VTL_res_kOk) {
+    VTL_sub_Entry entry;
+    while (VTL_sub_ReadPart(src, &entry) == VTL_res_kOk) {
         // Применяем стиль, если нужно (только для SRT/VTT)
         if (style_params && (output_format == VTL_sub_format_kSRT || output_format == VTL_sub_format_kVTT)) {
-            VTL_SubEntry styled_entry = entry;
+            VTL_sub_Entry styled_entry = entry;
             char styled_text[2048];
             if (output_format == VTL_sub_format_kSRT) {
                 char html_color[16];
@@ -94,15 +94,15 @@ VTL_AppResult VTL_sub_convert_with_style(const char* input_file, VTL_sub_Format 
             char* old_text = styled_entry.text;
             styled_entry.text = VTL_sub_StrdupNullable(styled_text);
             free(old_text);
-            VTL_sub_write_WritePart(sink, &styled_entry);
+            VTL_sub_WritePart(sink, &styled_entry, style_params);
             free(styled_entry.text);
         } else {
-            VTL_sub_write_WritePart(sink, &entry);
+            VTL_sub_WritePart(sink, &entry, NULL);
         }
         if (entry.text) free(entry.text);
         if (entry.style) free(entry.style);
     }
-    VTL_sub_read_CloseSource(&src);
-    VTL_sub_write_CloseOutput(&sink, style_params);
+    VTL_sub_ReadCloseSource(&src);
+    VTL_sub_WriteCloseSink(&sink);
     return VTL_res_kOk;
 }

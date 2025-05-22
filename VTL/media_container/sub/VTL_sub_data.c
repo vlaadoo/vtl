@@ -3,7 +3,7 @@
 #include <string.h> // Для memcpy, memset, strncpy, strdup, strtok_r, strstr, strchr
 #include <stdio.h>  // Для sscanf, snprintf
 #include <ctype.h>  // Для isspace
-#include "VTL_sub_opencl.h"
+#include <VTL/media_container/sub/VTL_sub_opencl.h>
 
 // Прототипы вспомогательных функций времени
 static double VTL_sub_ParseSrtVttTime(const char* time_str);
@@ -64,18 +64,18 @@ VTL_AppResult VTL_sub_ParamsSetFontName(VTL_sub_Params* p_params, VTL_sub_FontNa
     return VTL_res_kOk;
 }
 
-// Функции для VTL_SubList
-VTL_AppResult VTL_sub_ListCreate(VTL_SubList** pp_sub_list)
+// Функции для VTL_sub_List
+VTL_AppResult VTL_sub_ListCreate(VTL_sub_List** pp_sub_list)
 {
     if (!pp_sub_list) return VTL_res_kNullArgument;
-    *pp_sub_list = (VTL_SubList*)malloc(sizeof(VTL_SubList));
+    *pp_sub_list = (VTL_sub_List*)malloc(sizeof(VTL_sub_List));
     if (!*pp_sub_list) return VTL_res_kAllocError;
     (*pp_sub_list)->entries = NULL;
     (*pp_sub_list)->count = 0;
     return VTL_res_kOk;
 }
 
-VTL_AppResult VTL_sub_ListDestroy(VTL_SubList** pp_sub_list)
+VTL_AppResult VTL_sub_ListDestroy(VTL_sub_List** pp_sub_list)
 {
     if (!pp_sub_list || !*pp_sub_list) return VTL_res_kNullArgument;
     
@@ -101,15 +101,15 @@ char* VTL_sub_StrdupNullable(const char* src) {
     return dst;
 }
 
-VTL_AppResult VTL_sub_ListAddEntry(VTL_SubList* p_sub_list, const VTL_SubEntry* p_entry)
+VTL_AppResult VTL_sub_ListAddEntry(VTL_sub_List* p_sub_list, const VTL_sub_Entry* p_entry)
 {
     if (!p_sub_list || !p_entry) return VTL_res_kNullArgument;
 
-    VTL_SubEntry* new_entries = (VTL_SubEntry*)realloc(p_sub_list->entries, (p_sub_list->count + 1) * sizeof(VTL_SubEntry));
+    VTL_sub_Entry* new_entries = (VTL_sub_Entry*)realloc(p_sub_list->entries, (p_sub_list->count + 1) * sizeof(VTL_sub_Entry));
     if (!new_entries) return VTL_res_kAllocError;
     
     p_sub_list->entries = new_entries;
-    VTL_SubEntry* new_item = &p_sub_list->entries[p_sub_list->count];
+    VTL_sub_Entry* new_item = &p_sub_list->entries[p_sub_list->count];
 
     // Глубокое копирование записи
     new_item->index = p_entry->index;
@@ -133,16 +133,16 @@ VTL_AppResult VTL_sub_ListAddEntry(VTL_SubList* p_sub_list, const VTL_SubEntry* 
     return VTL_res_kOk;
 }
 
-VTL_AppResult VTL_sub_ListGetEntry(const VTL_SubList* p_sub_list, size_t index, VTL_SubEntry** pp_entry)
+VTL_AppResult VTL_sub_ListGetEntry(const VTL_sub_List* p_sub_list, size_t index, VTL_sub_Entry** pp_entry)
 {
     if (!p_sub_list || !pp_entry) return VTL_res_kNullArgument;
     if (index >= p_sub_list->count) return VTL_res_kArgumentError;
     
-    *pp_entry = (VTL_SubEntry*)&p_sub_list->entries[index]; // Убираем const для выходного параметра
+    *pp_entry = (VTL_sub_Entry*)&p_sub_list->entries[index]; // Убираем const для выходного параметра
     return VTL_res_kOk;
 }
 
-VTL_AppResult VTL_sub_ListRemoveEntry(VTL_SubList* p_sub_list, size_t index)
+VTL_AppResult VTL_sub_ListRemoveEntry(VTL_sub_List* p_sub_list, size_t index)
 {
     if (!p_sub_list) return VTL_res_kNullArgument;
     if (index >= p_sub_list->count) return VTL_res_kArgumentError;
@@ -156,7 +156,7 @@ VTL_AppResult VTL_sub_ListRemoveEntry(VTL_SubList* p_sub_list, size_t index)
 
     // Сдвигаем элементы
     if (index < p_sub_list->count - 1) {
-        memmove(&p_sub_list->entries[index], &p_sub_list->entries[index + 1], (p_sub_list->count - index - 1) * sizeof(VTL_SubEntry));
+        memmove(&p_sub_list->entries[index], &p_sub_list->entries[index + 1], (p_sub_list->count - index - 1) * sizeof(VTL_sub_Entry));
     }
     
     p_sub_list->count--;
@@ -167,7 +167,7 @@ VTL_AppResult VTL_sub_ListRemoveEntry(VTL_SubList* p_sub_list, size_t index)
     } else {
         // Пытаемся уменьшить массив, но не считаем критической ошибкой, если realloc вернет NULL
         // так как данные все еще действительны (хотя и с избыточной емкостью).
-        VTL_SubEntry* resized_entries = (VTL_SubEntry*)realloc(p_sub_list->entries, p_sub_list->count * sizeof(VTL_SubEntry));
+        VTL_sub_Entry* resized_entries = (VTL_sub_Entry*)realloc(p_sub_list->entries, p_sub_list->count * sizeof(VTL_sub_Entry));
         if (resized_entries) { 
             p_sub_list->entries = resized_entries;
         }
@@ -231,7 +231,7 @@ static void VTL_sub_ArgbToAssStr(uint32_t argb, char* buf, size_t bufsz) {
 }
 
 // Функции для парсинга и форматирования субтитров
-VTL_AppResult VTL_sub_Parse(VTL_BufferData* p_buffer_data, VTL_sub_Format format, VTL_SubList** pp_sub_list)
+VTL_AppResult VTL_sub_Parse(VTL_BufferData* p_buffer_data, VTL_sub_Format format, VTL_sub_List** pp_sub_list)
 {
     if (!p_buffer_data || !p_buffer_data->data || !pp_sub_list) return VTL_res_kNullArgument;
 
@@ -250,8 +250,8 @@ VTL_AppResult VTL_sub_Parse(VTL_BufferData* p_buffer_data, VTL_sub_Format format
 
         char* saveptr1; 
         char* line = strtok_r(buffer_copy, "\n", &saveptr1);
-        VTL_SubEntry current_entry;
-        memset(&current_entry, 0, sizeof(VTL_SubEntry)); 
+        VTL_sub_Entry current_entry;
+        memset(&current_entry, 0, sizeof(VTL_sub_Entry)); 
         int state = 0; // 0: ожидаем индекс/идентификатор, 1: ожидаем время, 2: ожидаем текст
         char text_buffer[4096] = {0}; 
         int auto_increment_index = 1; 
@@ -296,7 +296,7 @@ VTL_AppResult VTL_sub_Parse(VTL_BufferData* p_buffer_data, VTL_sub_Format format
                     if (res != VTL_res_kOk) break;
                     
                     memset(text_buffer, 0, sizeof(text_buffer));
-                    memset(&current_entry, 0, sizeof(VTL_SubEntry)); 
+                    memset(&current_entry, 0, sizeof(VTL_sub_Entry)); 
                     state = 0; 
                 }
                 line = strtok_r(NULL, "\n", &saveptr1);
@@ -326,7 +326,7 @@ VTL_AppResult VTL_sub_Parse(VTL_BufferData* p_buffer_data, VTL_sub_Format format
                             else if (current_entry.index == 0) current_entry.index = auto_increment_index++; // Для SRT, если индекс не был установлен ранее
                             memset(text_buffer, 0, sizeof(text_buffer));
                         } else { // Ошибка времени
-                            state = 0; memset(&current_entry, 0, sizeof(VTL_SubEntry));
+                            state = 0; memset(&current_entry, 0, sizeof(VTL_sub_Entry));
                         }
                     } else if (format == VTL_sub_format_kVTT) { // Идентификатор VTT (не число и не время)
                         if (strlen(line) < sizeof(vtt_id_buffer)) {
@@ -336,10 +336,10 @@ VTL_AppResult VTL_sub_Parse(VTL_BufferData* p_buffer_data, VTL_sub_Format format
                            state = 1; // Ожидаем время после ID
                         } else {
                              // Слишком длинный ID, пропускаем или ошибка
-                            state = 0; memset(&current_entry, 0, sizeof(VTL_SubEntry));
+                            state = 0; memset(&current_entry, 0, sizeof(VTL_sub_Entry));
                         }
                     } else { // Нераспознанная строка для SRT в состоянии 0
-                        state = 0; memset(&current_entry, 0, sizeof(VTL_SubEntry));
+                        state = 0; memset(&current_entry, 0, sizeof(VTL_sub_Entry));
                     }
                 }
                     break;
@@ -352,7 +352,7 @@ VTL_AppResult VTL_sub_Parse(VTL_BufferData* p_buffer_data, VTL_sub_Format format
                         if (current_entry.start < 0 || current_entry.end < 0 || current_entry.end < current_entry.start) {
                             state = 0; 
                             if (current_entry.style) { free(current_entry.style); current_entry.style = NULL; }
-                            memset(&current_entry, 0, sizeof(VTL_SubEntry));
+                            memset(&current_entry, 0, sizeof(VTL_sub_Entry));
                         } else {
                             state = 2; 
                             if (format == VTL_sub_format_kSRT && current_entry.index == 0) current_entry.index = auto_increment_index++;
@@ -361,7 +361,7 @@ VTL_AppResult VTL_sub_Parse(VTL_BufferData* p_buffer_data, VTL_sub_Format format
                     } else {
                         state = 0;
                         if (current_entry.style) { free(current_entry.style); current_entry.style = NULL; }
-                        memset(&current_entry, 0, sizeof(VTL_SubEntry));
+                        memset(&current_entry, 0, sizeof(VTL_sub_Entry));
                     }
                 }
                     break;
@@ -415,7 +415,7 @@ VTL_AppResult VTL_sub_Parse(VTL_BufferData* p_buffer_data, VTL_sub_Format format
         char* saveptr_line;
         char* line = strtok_r(buffer_copy, "\n", &saveptr_line);
         
-        VTL_SubEntry current_entry;
+        VTL_sub_Entry current_entry;
         int auto_ass_index = 1;
         
         enum AssSection { SECTION_NONE, SECTION_SCRIPT_INFO, SECTION_STYLES, SECTION_EVENTS } current_section = SECTION_NONE;
@@ -463,7 +463,7 @@ VTL_AppResult VTL_sub_Parse(VTL_BufferData* p_buffer_data, VTL_sub_Format format
                         continue;
                     }
 
-                    memset(&current_entry, 0, sizeof(VTL_SubEntry));
+                    memset(&current_entry, 0, sizeof(VTL_sub_Entry));
                     char* dialogue_line_ptr = line + 9; 
                     // НЕ используем VTL_sub_trimWhitespace для dialogue_line_ptr здесь, т.к. начальные пробелы могут быть частью первого поля
                     
@@ -585,7 +585,7 @@ static VTL_AppResult VTL_sub_AppendToOutput(OutputBufferCtx* ctx, const char* st
     return VTL_res_kOk;
 }
 
-VTL_AppResult VTL_sub_formatToString(const VTL_SubList* p_sub_list, VTL_sub_Format format, VTL_BufferData** pp_buffer_data, const VTL_SubStyleParams* style_params)
+VTL_AppResult VTL_sub_FormatToString(const VTL_sub_List* p_sub_list, VTL_sub_Format format, VTL_BufferData** pp_buffer_data, const VTL_sub_StyleParams* style_params)
 {
     if (!p_sub_list || !pp_buffer_data) return VTL_res_kNullArgument;
 
@@ -665,7 +665,7 @@ VTL_AppResult VTL_sub_formatToString(const VTL_SubList* p_sub_list, VTL_sub_Form
             char** out_texts = (char**)malloc(sizeof(char*) * p_sub_list->count);
             if (in_texts && out_texts) {
                 for (size_t i = 0; i < p_sub_list->count; ++i) in_texts[i] = p_sub_list->entries[i].text;
-                VTL_sub_opencl_strip_tags(in_texts, out_texts, p_sub_list->count);
+                VTL_sub_OpenclStripTags(in_texts, out_texts, p_sub_list->count);
                 for (size_t i = 0; i < p_sub_list->count; ++i) {
                     if (out_texts[i]) {
                         free((void*)p_sub_list->entries[i].text);
@@ -678,7 +678,7 @@ VTL_AppResult VTL_sub_formatToString(const VTL_SubList* p_sub_list, VTL_sub_Form
         }
 
         for (size_t i = 0; i < p_sub_list->count; ++i) {
-            VTL_SubEntry* entry = &p_sub_list->entries[i];
+            VTL_sub_Entry* entry = &p_sub_list->entries[i];
             char entry_render_buffer[2048]; // Увеличенный буфер для рендеринга одной строки субтитра
             char time_start_str[30];
             char time_end_str[30];
@@ -766,7 +766,7 @@ static VTL_sub_Format VTL_sub_DetectFormatFromExtension(const char* file_path) {
 }
 
 // Функции для загрузки и сохранения списка субтитров из/в файл
-VTL_AppResult VTL_sub_LoadFromFile(const char* file_path, VTL_sub_Format* detected_format_out, VTL_SubList** pp_sub_list)
+VTL_AppResult VTL_sub_LoadFromFile(const char* file_path, VTL_sub_Format* detected_format_out, VTL_sub_List** pp_sub_list)
 {
     if (!file_path || !pp_sub_list || !detected_format_out) return VTL_res_kNullArgument;
 
@@ -819,7 +819,7 @@ VTL_AppResult VTL_sub_LoadFromFile(const char* file_path, VTL_sub_Format* detect
     return parse_res;
 }
 
-VTL_AppResult VTL_sub_SaveToFile(const char* file_path, VTL_sub_Format format, const VTL_SubList* p_sub_list, const VTL_SubStyleParams* style_params)
+VTL_AppResult VTL_sub_SaveToFile(const char* file_path, VTL_sub_Format format, const VTL_sub_List* p_sub_list, const VTL_sub_StyleParams* style_params)
 {
     if (!file_path || !p_sub_list) return VTL_res_kNullArgument;
 
@@ -832,10 +832,10 @@ VTL_AppResult VTL_sub_SaveToFile(const char* file_path, VTL_sub_Format format, c
     }
     
     VTL_BufferData* buffer_data = NULL;
-    VTL_AppResult format_res = VTL_sub_formatToString(p_sub_list, target_format, &buffer_data, style_params);
+    VTL_AppResult format_res = VTL_sub_FormatToString(p_sub_list, target_format, &buffer_data, style_params);
 
     if (format_res != VTL_res_kOk) {
-        if (buffer_data) { // VTL_sub_formatToString может выделить buffer_data даже при ошибке
+        if (buffer_data) { // VTL_sub_FormatToString может выделить buffer_data даже при ошибке
             free(buffer_data->data);
             free(buffer_data);
         }

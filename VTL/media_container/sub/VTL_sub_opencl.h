@@ -12,7 +12,7 @@ extern "C" {
 // out_texts: массив указателей на строки (выход, выделяется внутри функции, освобождать вызывающему)
 // count: количество строк
 // Возвращает 0 при успехе, иначе код ошибки
-int VTL_sub_opencl_strip_tags(const char** in_texts, char** out_texts, size_t count);
+int VTL_sub_OpenclStripTags(const char** in_texts, char** out_texts, size_t count);
 
 #ifdef __cplusplus
 }

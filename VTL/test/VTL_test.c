@@ -1,4 +1,5 @@
 #include <VTL/test/VTL_test_data.h>
+#include <VTL/media_container/sub/VTL_sub_read.h>
 
 TEST(test_addition) 
 {

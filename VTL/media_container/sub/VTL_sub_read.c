@@ -1,23 +1,25 @@
-#include "VTL_sub_read.h"
+#include <VTL/media_container/sub/VTL_sub_read.h>
+#include <VTL/media_container/sub/VTL_sub_write.h>
+#include <VTL/media_container/sub/VTL_sub_style.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "VTL_sub_data.h"
+#include <VTL/media_container/sub/VTL_sub_data.h>
 
-struct VTL_SubReadSource {
-    VTL_SubList* p_list;
+struct VTL_sub_ReadSource {
+    VTL_sub_List* p_list;
     size_t current_index;
-    VTL_SubReadMeta meta;
+    VTL_sub_ReadMeta meta;
 };
 
-VTL_AppResult VTL_sub_read_OpenSource(const char* file_path, VTL_SubReadSource** pp_source) {
+VTL_AppResult VTL_sub_ReadOpenSource(const char* file_path, VTL_sub_ReadSource** pp_source) {
     if (!file_path || !pp_source) return VTL_res_kNullArgument;
     *pp_source = NULL;
-    VTL_SubList* p_list = NULL;
+    VTL_sub_List* p_list = NULL;
     VTL_sub_Format format = VTL_sub_format_kUNKNOWN;
     VTL_AppResult res = VTL_sub_LoadFromFile(file_path, &format, &p_list);
     if (res != VTL_res_kOk) return res;
-    VTL_SubReadSource* src = (VTL_SubReadSource*)malloc(sizeof(VTL_SubReadSource));
+    VTL_sub_ReadSource* src = (VTL_sub_ReadSource*)malloc(sizeof(VTL_sub_ReadSource));
     if (!src) {
         VTL_sub_ListDestroy(&p_list);
         return VTL_res_kAllocError;
@@ -30,25 +32,25 @@ VTL_AppResult VTL_sub_read_OpenSource(const char* file_path, VTL_SubReadSource**
     return VTL_res_kOk;
 }
 
-VTL_AppResult VTL_sub_read_CloseSource(VTL_SubReadSource** pp_source) {
+VTL_AppResult VTL_sub_ReadCloseSource(VTL_sub_ReadSource** pp_source) {
     if (!pp_source || !*pp_source) return VTL_res_kNullArgument;
-    VTL_SubReadSource* src = *pp_source;
+    VTL_sub_ReadSource* src = *pp_source;
     if (src->p_list) VTL_sub_ListDestroy(&src->p_list);
     free(src);
     *pp_source = NULL;
     return VTL_res_kOk;
 }
 
-VTL_AppResult VTL_sub_read_ReadMetaData(VTL_SubReadSource* p_source, VTL_SubReadMeta* p_meta) {
+VTL_AppResult VTL_sub_ReadMetaData(VTL_sub_ReadSource* p_source, VTL_sub_ReadMeta* p_meta) {
     if (!p_source || !p_meta) return VTL_res_kNullArgument;
     *p_meta = p_source->meta;
     return VTL_res_kOk;
 }
 
-VTL_AppResult VTL_sub_read_ReadPart(VTL_SubReadSource* p_source, VTL_SubEntry* p_entry) {
+VTL_AppResult VTL_sub_ReadPart(VTL_sub_ReadSource* p_source, VTL_sub_Entry* p_entry) {
     if (!p_source || !p_entry) return VTL_res_kNullArgument;
     if (!p_source->p_list || p_source->current_index >= p_source->p_list->count) return VTL_res_kEndOfFile;
-    VTL_SubEntry* src_entry = &p_source->p_list->entries[p_source->current_index++];
+    VTL_sub_Entry* src_entry = &p_source->p_list->entries[p_source->current_index++];
     *p_entry = *src_entry;
     // Глубокое копирование строк
     if (src_entry->text) p_entry->text = strdup(src_entry->text);

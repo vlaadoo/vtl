@@ -1,26 +1,26 @@
 #ifndef VTL_SUB_WRITE_H
 #define VTL_SUB_WRITE_H
 
-#include "VTL_sub_data.h"
-#include "VTL_sub_style.h"
+#include <VTL/media_container/sub/VTL_sub_data.h>
+#include <VTL/media_container/sub/VTL_sub_style.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct VTL_SubWriteSink VTL_SubWriteSink;
+typedef struct VTL_sub_WriteSink VTL_sub_WriteSink;
 
-typedef struct VTL_SubWriteMeta {
+typedef struct VTL_sub_WriteMeta {
     VTL_sub_Format format;
     // Можно добавить язык, кодировку и др. при необходимости
-} VTL_SubWriteMeta;
+} VTL_sub_WriteMeta;
 
 // Открыть приёмник субтитров для записи
-VTL_AppResult VTL_sub_write_OpenOutput(const char* file_path, const VTL_SubWriteMeta* p_meta, VTL_SubWriteSink** pp_sink);
+VTL_AppResult VTL_sub_WriteOpenSink(const char* file_path, VTL_sub_Format format, VTL_sub_WriteSink** pp_sink);
 // Записать одну запись (реплику) субтитров
-VTL_AppResult VTL_sub_write_WritePart(VTL_SubWriteSink* p_sink, const VTL_SubEntry* p_entry);
+VTL_AppResult VTL_sub_WritePart(VTL_sub_WriteSink* p_sink, const VTL_sub_Entry* p_entry, const VTL_sub_StyleParams* style_params);
 // Закрыть приёмник
-VTL_AppResult VTL_sub_write_CloseOutput(VTL_SubWriteSink** pp_sink, const VTL_SubStyleParams* style_params);
+VTL_AppResult VTL_sub_WriteCloseSink(VTL_sub_WriteSink** pp_sink);
 
 #ifdef __cplusplus
 }

@@ -1,18 +1,18 @@
-#include "VTL_sub_parse.h"
+#include <VTL/media_container/sub/VTL_sub_parse.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
 // Получить расширение файла
-static const char* VTL_sub_getFileExt(const char* filename) {
+static const char* VTL_sub_GetFileExt(const char* filename) {
     const char* dot = strrchr(filename, '.');
     return dot ? dot + 1 : "";
 }
 
-// Определить формат субтитров по расширению
-VTL_sub_Format VTL_sub_detectFormat(const char* filename) {
-    const char* ext = VTL_sub_getFileExt(filename);
+// Определяет формат субтитров по расширению файла
+VTL_sub_Format VTL_sub_ParseDetectFormat(const char* filename) {
+    const char* ext = VTL_sub_GetFileExt(filename);
     if (strcasecmp(ext, "srt") == 0) return VTL_sub_format_kSRT;
     if (strcasecmp(ext, "ass") == 0) return VTL_sub_format_kASS;
     if (strcasecmp(ext, "vtt") == 0) return VTL_sub_format_kVTT;
@@ -20,7 +20,7 @@ VTL_sub_Format VTL_sub_detectFormat(const char* filename) {
 }
 
 // Очистка памяти списка субтитров
-void VTL_sub_ListFree(VTL_SubList* list) {
+void VTL_sub_ListFree(VTL_sub_List* list) {
     if (!list || !list->entries) return;
     for (size_t i = 0; i < list->count; ++i) {
         free(list->entries[i].text);
@@ -48,7 +48,7 @@ static double VTL_sub_ParseTime(const char* str, VTL_sub_Format format) {
 }
 
 // Вспомогательная функция для изменения размера массива субтитров
-static VTL_AppResult VTL_sub_resizeSubEntryArray(VTL_SubEntry** arr_ptr, size_t* capacity_ptr, size_t current_len) {
+static VTL_AppResult VTL_sub_ResizeSubEntryArray(VTL_sub_Entry** arr_ptr, size_t* capacity_ptr, size_t current_len) {
     if (!arr_ptr || !capacity_ptr) return VTL_res_kArgumentError; // Проверяем указатели
     // Если *arr_ptr это NULL, это может быть начальное выделение, current_len должен быть 0
     if (!*arr_ptr && current_len != 0) return VTL_res_kArgumentError; 
@@ -58,10 +58,10 @@ static VTL_AppResult VTL_sub_resizeSubEntryArray(VTL_SubEntry** arr_ptr, size_t*
         return VTL_res_kOk; // Вместимости достаточно
     }
     size_t new_capacity = *capacity_ptr ? (*capacity_ptr) * 2 : 16;
-    VTL_SubEntry* temp_arr = realloc(*arr_ptr, new_capacity * sizeof(VTL_SubEntry));
+    VTL_sub_Entry* temp_arr = realloc(*arr_ptr, new_capacity * sizeof(VTL_sub_Entry));
     if (!temp_arr) {
         // Вызывающая функция должна будет сама освободить *arr_ptr, если он не NULL, перед возвратом ошибки.
-        // Это важно, так как VTL_sub_ListFree ожидает VTL_SubList.
+        // Это важно, так как VTL_sub_ListFree ожидает VTL_sub_List.
         return VTL_res_kMemoryError;
     }
     *arr_ptr = temp_arr;
@@ -70,7 +70,7 @@ static VTL_AppResult VTL_sub_resizeSubEntryArray(VTL_SubEntry** arr_ptr, size_t*
 }
 
 // Вспомогательная функция для чтения текстового блока субтитра
-static void VTL_sub_readSubtitleTextBlock(FILE* f, char* textbuf, size_t buf_size) {
+static void VTL_sub_ReadSubtitleTextBlock(FILE* f, char* textbuf, size_t buf_size) {
     char line_reader[1024]; // Буфер для чтения строк из файла
     char* p = textbuf;
     *p = '\0'; // Инициализация textbuf пустой строкой
@@ -100,7 +100,7 @@ static void VTL_sub_readSubtitleTextBlock(FILE* f, char* textbuf, size_t buf_siz
 }
 
 // Парсинг субтитров из файла в список
-VTL_AppResult VTL_sub_ParseFile(const char* input_file, VTL_sub_Format input_format, VTL_SubList* out_list) {
+VTL_AppResult VTL_sub_ParseFile(const char* input_file, VTL_sub_Format input_format, VTL_sub_List* out_list) {
     if (!out_list) return VTL_res_kArgumentError;
     out_list->entries = NULL;
     out_list->count = 0;
@@ -108,7 +108,7 @@ VTL_AppResult VTL_sub_ParseFile(const char* input_file, VTL_sub_Format input_for
     FILE* f = fopen(input_file, "r");
     if (!f) return VTL_res_video_fs_r_kMissingFileErr;
 
-    VTL_SubEntry* arr = NULL;
+    VTL_sub_Entry* arr = NULL;
     size_t arr_cap = 0;
     size_t arr_len = 0;
     char line_buffer[1024]; // Общий буфер для чтения строк
@@ -134,9 +134,9 @@ VTL_AppResult VTL_sub_ParseFile(const char* input_file, VTL_sub_Format input_for
             double start = VTL_sub_ParseTime(line_buffer, input_format);
             double end = VTL_sub_ParseTime(arrow + 3, input_format);
 
-            VTL_sub_readSubtitleTextBlock(f, text_buffer, sizeof(text_buffer));
+            VTL_sub_ReadSubtitleTextBlock(f, text_buffer, sizeof(text_buffer));
             
-            res = VTL_sub_resizeSubEntryArray(&arr, &arr_cap, arr_len);
+            res = VTL_sub_ResizeSubEntryArray(&arr, &arr_cap, arr_len);
             if (res != VTL_res_kOk) break;
 
             arr[arr_len].index = idx;
@@ -168,9 +168,9 @@ VTL_AppResult VTL_sub_ParseFile(const char* input_file, VTL_sub_Format input_for
             double start = VTL_sub_ParseTime(line_buffer, input_format);
             double end = VTL_sub_ParseTime(arrow + 3, input_format);
 
-            VTL_sub_readSubtitleTextBlock(f, text_buffer, sizeof(text_buffer));
+            VTL_sub_ReadSubtitleTextBlock(f, text_buffer, sizeof(text_buffer));
 
-            res = VTL_sub_resizeSubEntryArray(&arr, &arr_cap, arr_len);
+            res = VTL_sub_ResizeSubEntryArray(&arr, &arr_cap, arr_len);
             if (res != VTL_res_kOk) break;
             
             arr[arr_len].index = current_vtt_index++;
@@ -226,7 +226,7 @@ VTL_AppResult VTL_sub_ParseFile(const char* input_file, VTL_sub_Format input_for
             double start = VTL_sub_ParseTime(fields[1], input_format);
             double end = VTL_sub_ParseTime(fields[2], input_format);
             
-            res = VTL_sub_resizeSubEntryArray(&arr, &arr_cap, arr_len);
+            res = VTL_sub_ResizeSubEntryArray(&arr, &arr_cap, arr_len);
             if (res != VTL_res_kOk) break;
 
             arr[arr_len].index = current_ass_index++;
@@ -254,7 +254,7 @@ VTL_AppResult VTL_sub_ParseFile(const char* input_file, VTL_sub_Format input_for
     if (res != VTL_res_kOk && arr != NULL) {
         // Если произошла ошибка в цикле парсинга (кроме ошибки выделения памяти, обработанной выше),
         // и массив arr был выделен, нужно его очистить.
-        VTL_SubList tempList = { .entries = arr, .count = arr_len };
+        VTL_sub_List tempList = { .entries = arr, .count = arr_len };
         VTL_sub_ListFree(&tempList); // Это обнулит arr_len и arr внутри tempList
         arr = NULL; // Убедимся, что out_list не получит некорректный указатель
         arr_len = 0;
@@ -269,7 +269,7 @@ VTL_AppResult VTL_sub_ParseFile(const char* input_file, VTL_sub_Format input_for
 }
 
 // Функция для парсинга субтитров из буфера (VTL_BufferData)
-VTL_AppResult VTL_sub_parse(VTL_BufferData* p_buffer_data, VTL_sub_Format format, VTL_SubList** pp_sub_list) {
+VTL_AppResult VTL_sub_ParseBuffer(VTL_BufferData* p_buffer_data, VTL_sub_Format format, VTL_sub_List** pp_sub_list) {
     // Реализация аналогична тому, что было, но работает с p_buffer_data->data вместо чтения из файла
     // ... (реализация парсинга из буфера, а не из файла) ...
 } 

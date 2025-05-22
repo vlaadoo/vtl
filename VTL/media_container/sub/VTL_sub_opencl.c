@@ -1,4 +1,4 @@
-#include "VTL_sub_opencl.h"
+#include <VTL/media_container/sub/VTL_sub_opencl.h>
 #include <OpenCL/opencl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +21,7 @@ const char* kernelSource =
 "    out_data[out_offset + j] = '\0';\n"
 "}\n";
 
-int VTL_sub_opencl_strip_tags(const char** in_texts, char** out_texts, size_t count) {
+int VTL_sub_OpenclStripTags(const char** in_texts, char** out_texts, size_t count) {
     cl_int err;
     cl_platform_id platform;
     cl_device_id device;

@@ -8,7 +8,7 @@ extern "C" {
 #include <stdint.h>
 
 // Параметры оформления субтитров
-typedef struct {
+typedef struct VTL_sub_StyleParams {
     const char* fontname;      // Семейство шрифтов
     int fontsize;              // Размер шрифта
     uint32_t primary_color;    // Цвет шрифта (ARGB)
@@ -21,10 +21,10 @@ typedef struct {
     int underline;             // Подчёркнутый
     int alignment;             // Выравнивание
     int margin_l, margin_r, margin_v; // Отступы
-} VTL_SubStyleParams;
+} VTL_sub_StyleParams;
 
 // Загрузка параметров оформления из JSON-файла
-int VTL_sub_style_load_from_json(const char* json_file, VTL_SubStyleParams* style_params);
+int VTL_sub_StyleLoadFromJson(const char* json_file, VTL_sub_StyleParams* style_params);
 
 #ifdef __cplusplus
 }

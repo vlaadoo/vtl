@@ -1,10 +1,10 @@
-#include "VTL_sub_style.h"
+#include <VTL/media_container/sub/VTL_sub_style.h>
 #include <external/parson/parson.h>
 #include <stdlib.h> // Для strtoul
 #include <string.h> // Для strdup
 
 // Загрузка параметров оформления субтитров из JSON-файла
-int VTL_sub_style_load_from_json(const char* json_file, VTL_SubStyleParams* style_params) {
+int VTL_sub_StyleLoadFromJson(const char* json_file, VTL_sub_StyleParams* style_params) {
     JSON_Value* root = json_parse_file(json_file);
     if (!root) return -1;
     JSON_Object* obj = json_value_get_object(root);

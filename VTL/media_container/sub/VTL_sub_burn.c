@@ -1,4 +1,4 @@
-#include "VTL_sub_burn.h"
+#include <VTL/media_container/sub/VTL_sub_burn.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h> // Для realpath
@@ -15,9 +15,9 @@
 #include <libavutil/channel_layout.h>
 #include <libavutil/audio_fifo.h>
 
-#include "VTL_sub_read.h"
-#include "VTL_sub_write.h"
-#include "VTL_sub_style.h"
+#include <VTL/media_container/sub/VTL_sub_read.h>
+#include <VTL/media_container/sub/VTL_sub_write.h>
+#include <VTL/media_container/sub/VTL_sub_style.h>
 
 // Структура для хранения контекстов и информации о потоках
 typedef struct ProcessingContext {
@@ -47,7 +47,7 @@ typedef struct ProcessingContext {
 
 } ProcessingContext;
 
-static void cleanup_processing_context(ProcessingContext *pctx) {
+static void VTL_sub_BurnCleanupProcessingContext(ProcessingContext *pctx) {
     if (!pctx) return;
 
     if (pctx->video_dec_ctx) avcodec_free_context(&pctx->video_dec_ctx);
@@ -72,7 +72,7 @@ static void cleanup_processing_context(ProcessingContext *pctx) {
 }
 
 
-static int open_input_file(ProcessingContext *pctx, const char *filename) {
+static int VTL_sub_BurnOpenInputFile(ProcessingContext *pctx, const char *filename) {
     int ret;
     pctx->ifmt_ctx_video = NULL;
     if ((ret = avformat_open_input(&pctx->ifmt_ctx_video, filename, NULL, NULL)) < 0) {
@@ -147,7 +147,7 @@ static int open_input_file(ProcessingContext *pctx, const char *filename) {
     return 0;
 }
 
-static int setup_video_encoder(ProcessingContext *pctx, AVStream *out_stream) {
+static int VTL_sub_BurnSetupVideoEncoder(ProcessingContext *pctx, AVStream *out_stream) {
     int ret;
     const AVCodec *encoder = avcodec_find_encoder_by_name("mpeg4");
     if (!encoder) {
@@ -197,7 +197,7 @@ static int setup_video_encoder(ProcessingContext *pctx, AVStream *out_stream) {
     return 0;
 }
 
-static int setup_audio_encoder(ProcessingContext *pctx, AVStream *out_stream) {
+static int VTL_sub_BurnSetupAudioEncoder(ProcessingContext *pctx, AVStream *out_stream) {
     if (!pctx->audio_dec_ctx) return 0; // Нет входного аудио, нечего кодировать
 
     int ret;
@@ -244,7 +244,7 @@ static int setup_audio_encoder(ProcessingContext *pctx, AVStream *out_stream) {
 }
 
 
-static int init_filters(ProcessingContext *pctx) {
+static int VTL_sub_BurnInitFilters(ProcessingContext *pctx) {
     char args[512];
     int ret = 0;
     const AVFilter *buffersrc = avfilter_get_by_name("buffer");
@@ -333,7 +333,7 @@ end:
     return ret;
 } 
 
-static int encode_write_frame(ProcessingContext *pctx, AVFrame *frame, int stream_idx) {
+static int VTL_sub_BurnEncodeWriteFrame(ProcessingContext *pctx, AVFrame *frame, int stream_idx) {
     int ret;
     AVCodecContext *enc_ctx = (stream_idx == pctx->video_stream_idx_out) ? pctx->video_enc_ctx : pctx->audio_enc_ctx;
     AVStream *out_stream = pctx->ofmt_ctx->streams[stream_idx];
@@ -383,7 +383,7 @@ static int encode_write_frame(ProcessingContext *pctx, AVFrame *frame, int strea
 }
 
 
-int VTL_sub_burn_to_video(const char* input_video, const char* input_subs, VTL_sub_Format subs_format, const char* output_video, const VTL_SubStyleParams* style_params) {
+int VTL_sub_BurnToVideo(const char* input_video, const char* input_subs, VTL_sub_Format subs_format, const char* output_video, const VTL_sub_StyleParams* style_params) {
     ProcessingContext pctx_data = {0};
     ProcessingContext *pctx = &pctx_data;
     pctx->video_stream_idx_in = -1;
@@ -391,9 +391,9 @@ int VTL_sub_burn_to_video(const char* input_video, const char* input_subs, VTL_s
     int ret = 0;
     char temp_ass_path[256] = {0};
     FILE* temp_ass = NULL;
-    VTL_SubReadSource* sub_src = NULL;
-    VTL_SubWriteSink* sub_sink = NULL;
-    VTL_SubWriteMeta wmeta = { .format = VTL_sub_format_kASS };
+    VTL_sub_ReadSource* sub_src = NULL;
+    VTL_sub_WriteSink* sub_sink = NULL;
+    VTL_sub_WriteMeta wmeta = { .format = VTL_sub_format_kASS };
 
     if (!input_video || !input_subs || !output_video) {
         fprintf(stderr, "Не указаны входные/выходные файлы или файл субтитров.\n");
@@ -402,25 +402,25 @@ int VTL_sub_burn_to_video(const char* input_video, const char* input_subs, VTL_s
 
     // --- Новый блок: поэтапное чтение и запись субтитров во временный файл ASS ---
     snprintf(temp_ass_path, sizeof(temp_ass_path), "/tmp/vtl_burn_temp_%d.ass", getpid());
-    ret = VTL_sub_read_OpenSource(input_subs, &sub_src);
+    ret = VTL_sub_ReadOpenSource(input_subs, &sub_src);
     if (ret != VTL_res_kOk) {
         fprintf(stderr, "[burn] Не удалось открыть субтитры для чтения: %d\n", ret);
         return -1;
     }
-    ret = VTL_sub_write_OpenOutput(temp_ass_path, &wmeta, &sub_sink);
+    ret = VTL_sub_WriteOpenSink(temp_ass_path, VTL_sub_format_kASS, &sub_sink);
     if (ret != VTL_res_kOk) {
-        VTL_sub_read_CloseSource(&sub_src);
+        VTL_sub_ReadCloseSource(&sub_src);
         fprintf(stderr, "[burn] Не удалось открыть временный файл для записи субтитров: %d\n", ret);
         return -1;
     }
-    VTL_SubEntry entry;
-    while (VTL_sub_read_ReadPart(sub_src, &entry) == VTL_res_kOk) {
-        VTL_sub_write_WritePart(sub_sink, &entry);
+    VTL_sub_Entry entry;
+    while (VTL_sub_ReadPart(sub_src, &entry) == VTL_res_kOk) {
+        VTL_sub_WritePart(sub_sink, &entry, style_params);
         if (entry.text) free(entry.text);
         if (entry.style) free(entry.style);
     }
-    VTL_sub_read_CloseSource(&sub_src);
-    VTL_sub_write_CloseOutput(&sub_sink, style_params);
+    VTL_sub_ReadCloseSource(&sub_src);
+    VTL_sub_WriteCloseSink(&sub_sink);
     // --- Конец блока ---
     // Получаем абсолютный путь к временному файлу субтитров
     if (realpath(temp_ass_path, pctx->subs_abs_path) == NULL) {
@@ -431,8 +431,8 @@ int VTL_sub_burn_to_video(const char* input_video, const char* input_subs, VTL_s
 
 
     // 1. Открытие входного файла и инициализация декодеров
-    if ((ret = open_input_file(pctx, input_video)) < 0) {
-        fprintf(stderr, "[burn] Ошибка open_input_file: %d (%s)\n", ret, av_err2str(ret));
+    if ((ret = VTL_sub_BurnOpenInputFile(pctx, input_video)) < 0) {
+        fprintf(stderr, "[burn] Ошибка VTL_sub_BurnOpenInputFile: %d (%s)\n", ret, av_err2str(ret));
         goto cleanup;
     }
 
@@ -458,22 +458,22 @@ int VTL_sub_burn_to_video(const char* input_video, const char* input_subs, VTL_s
     
     // 3. Инициализация фильтров (после декодеров, до энкодеров)
     if (pctx->video_dec_ctx) {
-         if ((ret = init_filters(pctx)) < 0) {
-            fprintf(stderr, "[burn] Ошибка init_filters: %d (%s)\n", ret, av_err2str(ret));
+         if ((ret = VTL_sub_BurnInitFilters(pctx)) < 0) {
+            fprintf(stderr, "[burn] Ошибка VTL_sub_BurnInitFilters: %d (%s)\n", ret, av_err2str(ret));
             goto cleanup;
         }
     }
     
     // 4. Настройка энкодеров (после фильтров, чтобы time_base была корректной)
     if (pctx->video_dec_ctx) {
-        if ((ret = setup_video_encoder(pctx, pctx->ofmt_ctx->streams[pctx->video_stream_idx_out])) < 0) {
-            fprintf(stderr, "[burn] Ошибка setup_video_encoder: %d (%s)\n", ret, av_err2str(ret));
+        if ((ret = VTL_sub_BurnSetupVideoEncoder(pctx, pctx->ofmt_ctx->streams[pctx->video_stream_idx_out])) < 0) {
+            fprintf(stderr, "[burn] Ошибка VTL_sub_BurnSetupVideoEncoder: %d (%s)\n", ret, av_err2str(ret));
             goto cleanup;
         }
     }
     if (pctx->audio_dec_ctx) {
-         if ((ret = setup_audio_encoder(pctx, pctx->ofmt_ctx->streams[pctx->audio_stream_idx_out])) < 0) {
-            fprintf(stderr, "[burn] Ошибка setup_audio_encoder: %d (%s)\n", ret, av_err2str(ret));
+         if ((ret = VTL_sub_BurnSetupAudioEncoder(pctx, pctx->ofmt_ctx->streams[pctx->audio_stream_idx_out])) < 0) {
+            fprintf(stderr, "[burn] Ошибка VTL_sub_BurnSetupAudioEncoder: %d (%s)\n", ret, av_err2str(ret));
             avcodec_free_context(&pctx->audio_enc_ctx);
             pctx->audio_enc_ctx = NULL;
         }
@@ -536,8 +536,8 @@ int VTL_sub_burn_to_video(const char* input_video, const char* input_subs, VTL_s
                     if (ret < 0) { fprintf(stderr, "Ошибка получения кадра из графа фильтров\n"); goto loop_end; }
                     
                     // Кодируем и пишем отфильтрованный кадр
-                    if (encode_write_frame(pctx, pctx->filtered_frame, pctx->video_stream_idx_out) < 0) {
-                         fprintf(stderr, "[burn] Ошибка encode_write_frame (video)\n");
+                    if (VTL_sub_BurnEncodeWriteFrame(pctx, pctx->filtered_frame, pctx->video_stream_idx_out) < 0) {
+                         fprintf(stderr, "[burn] Ошибка VTL_sub_BurnEncodeWriteFrame (video)\n");
                          av_frame_unref(pctx->filtered_frame);
                          goto loop_end;
                     }
@@ -556,8 +556,8 @@ int VTL_sub_burn_to_video(const char* input_video, const char* input_subs, VTL_s
                 // Здесь может потребоваться ресемплинг, если форматы не совпадают.
                 // Для простоты, предполагаем, что энкодер может принять формат декодера.
                 // Если нет, нужен будет AVAudioFifo и/или swr_convert.
-                if (encode_write_frame(pctx, pctx->decoded_frame, pctx->audio_stream_idx_out) < 0) {
-                     fprintf(stderr, "[burn] Ошибка encode_write_frame (audio)\n");
+                if (VTL_sub_BurnEncodeWriteFrame(pctx, pctx->decoded_frame, pctx->audio_stream_idx_out) < 0) {
+                     fprintf(stderr, "[burn] Ошибка VTL_sub_BurnEncodeWriteFrame (audio)\n");
                      av_frame_unref(pctx->decoded_frame);
                      goto loop_end;
                 }
@@ -571,12 +571,12 @@ loop_end:
 
     // Промывка энкодеров
     if (pctx->video_enc_ctx) {
-        int flush_ret = encode_write_frame(pctx, NULL, pctx->video_stream_idx_out);
-        if (flush_ret < 0) fprintf(stderr, "[burn] Ошибка encode_write_frame (video flush): %d\n", flush_ret);
+        int flush_ret = VTL_sub_BurnEncodeWriteFrame(pctx, NULL, pctx->video_stream_idx_out);
+        if (flush_ret < 0) fprintf(stderr, "[burn] Ошибка VTL_sub_BurnEncodeWriteFrame (video flush): %d\n", flush_ret);
     }
     if (pctx->audio_enc_ctx) {
-        int flush_ret = encode_write_frame(pctx, NULL, pctx->audio_stream_idx_out);
-        if (flush_ret < 0) fprintf(stderr, "[burn] Ошибка encode_write_frame (audio flush): %d\n", flush_ret);
+        int flush_ret = VTL_sub_BurnEncodeWriteFrame(pctx, NULL, pctx->audio_stream_idx_out);
+        if (flush_ret < 0) fprintf(stderr, "[burn] Ошибка VTL_sub_BurnEncodeWriteFrame (audio flush): %d\n", flush_ret);
     }
 
     ret = av_write_trailer(pctx->ofmt_ctx);
@@ -586,7 +586,7 @@ loop_end:
     unlink(temp_ass_path);
 
 cleanup:
-    cleanup_processing_context(pctx);
+    VTL_sub_BurnCleanupProcessingContext(pctx);
     
     // subs_format не используется в этой реализации, т.к. фильтр subtitles обычно автоопределяет формат
     (void)subs_format; 
@@ -594,32 +594,4 @@ cleanup:
     return (ret < 0 && ret != AVERROR_EOF) ? -1 : 0; // Возвращаем -1 при ошибке, 0 при успехе
 }
 
-// Вспомогательные функции для инициализации, если потребуются (не реализованы):
-// static AVFrame *alloc_picture(enum AVPixelFormat pix_fmt, int width, int height);
-// static AVFrame *alloc_audio_frame(enum AVSampleFormat sample_fmt, const AVChannelLayout* channel_layout, int sample_rate, int nb_samples);
-
-/* 
-Пример компиляции (может потребовать корректировки путей и библиотек):
-gcc VTL_sub_burn.c -o VTL_sub_burn_test \\
-    -I/path/to/ffmpeg_install/include \\
-    -L/path/to/ffmpeg_install/lib \\
-    -lavformat -lavcodec -lavfilter -lavutil -lswscale -lswresample -lm -pthread 
-*/
-
-// int main_test_example() {
-//     // Пример вызова
-//     // Не забудьте инициализировать ffmpeg (один раз для всего приложения)
-//     // av_register_all(); // Устарело
-//     // avformat_network_init(); // Если нужны сетевые протоколы
-// 
-//     int result = VTL_sub_burn_to_video("input.mp4", "subs.srt", VTL_sub_format_kSRT, "output_burned.mp4");
-//     if (result == 0) {
-//         printf("Субтитры успешно встроены.\n");
-//     } else {
-//         printf("Ошибка встраивания субтитров: %d\n", result);
-//     }
-// 
-//     // avformat_network_deinit(); // Если был init
-//     return result;
-// }
 
